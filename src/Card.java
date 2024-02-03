@@ -1,4 +1,3 @@
-
 public class Card {
     private final String value;
     private final String cardType;
