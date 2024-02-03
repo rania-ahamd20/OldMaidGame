@@ -3,63 +3,56 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-public class Player extends Thread {
+class Player implements Runnable {
     private final String name;
     private final List<Card> hand;
     private final List<Player> players;
-    private int currentPlayerIndex;
     private final Semaphore turnSemaphore;
+    private final Object gameLock;
 
-    public Player(String name, List<Player> players, Semaphore turnSemaphore) {
-        super(name);
+    public Player(String name, List<Player> players, Semaphore turnSemaphore, Object gameLock) {
         this.name = name;
         this.players = players;
-        hand = new ArrayList<>();
-        currentPlayerIndex = players.indexOf(this);
+        this.hand = new ArrayList<>();
         this.turnSemaphore = turnSemaphore;
+        this.gameLock = gameLock;
     }
 
     @Override
     public void run() {
         while (!allHandsEmptyExceptOne()) {
             try {
-                turnSemaphore.acquire();
-                checkMatchingPair();
-                Player nextPlayer = getNextPlayerInTurnOrder();
-                Card card = takeRandomCard(nextPlayer);
-                if (card != null) {
-                    checkMatchingPair();
-                }
+                takeTurn();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-            } finally {
-                turnSemaphore.release();
             }
         }
     }
 
-    private Player getNextPlayerInTurnOrder() {
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-        return players.get(currentPlayerIndex);
-    }
-
-    private void printAllHands() {
-        for (Player player : players) {
-            System.out.println(player.getName() + "'s hand: " + player.getHand());
+    private void takeTurn() throws InterruptedException {
+        turnSemaphore.acquire();
+        try {
+            Player nextPlayer = getNextPlayerInTurnOrder();
+            takeRandomCard(nextPlayer);
+            checkMatchingPair();
+        } finally {
+            turnSemaphore.release();
         }
-        System.out.println();
     }
 
-    private Card takeRandomCard(Player player) {
+    private Player getNextPlayerInTurnOrder() {
+        int currentPlayerIndex = players.indexOf(this);
+        return players.get((currentPlayerIndex + 1) % players.size());
+    }
+
+    private void takeRandomCard(Player player) {
         if (!player.equals(this) && !player.getHand().isEmpty()) {
             List<Card> playerHand = player.getHand();
             Collections.shuffle(playerHand);
             Card randomCard = playerHand.remove(0);
             hand.add(randomCard);
             System.out.println(name + " took a card from " + player.getName() + " which is " + randomCard);
-            return randomCard;
         }
-        return null;
     }
 
     private void checkMatchingPair() {
@@ -81,12 +74,11 @@ public class Player extends Thread {
         }
     }
 
-    public void receiveCard(Card card) {
-        hand.add(card);
-    }
-
-    public List<Card> getHand() {
-        return hand;
+    private void printAllHands() {
+        for (Player player : players) {
+            System.out.println(player.getName() + "'s hand: " + player.getHand());
+        }
+        System.out.println();
     }
 
     private boolean allHandsEmptyExceptOne() {
@@ -100,5 +92,15 @@ public class Player extends Thread {
 
         return nonEmptyHands == 1;
     }
-}
 
+    public String getName() {
+        return name;
+    }
+
+    public List<Card> getHand() {
+        return hand;
+    }
+    public void receiveCard(Card card) {
+        hand.add(card);
+    }
+}
