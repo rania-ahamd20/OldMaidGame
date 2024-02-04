@@ -5,7 +5,7 @@ import java.util.concurrent.Semaphore;
 class OldMaidGame implements CardGame {
     private final List<Player> players;
     private final List<Card> deck;
-    private final Object gameLock = new Object();
+    private final Object gameLock = new Object();//My synchronization Object
 
     public OldMaidGame(int numPlayers) {
         players = new ArrayList<>();
@@ -34,35 +34,10 @@ class OldMaidGame implements CardGame {
     }
 
     private void initializePlayers(int numPlayers) {
-        Semaphore turnSemaphore = new Semaphore(1);
+        Semaphore turnSemaphore = new Semaphore(0);
         for (int i = 1; i <= numPlayers; i++) {
             players.add(new Player("Player " + i, players, turnSemaphore, getGameLock()));
         }
-    }
-
-    private void distributeCards() {
-        int playerIndex = 0;
-
-        for (Card card : deck) {
-            Player currentPlayer = players.get(playerIndex);
-            currentPlayer.receiveCard(card);
-            playerIndex = (playerIndex + 1) % players.size();
-        }
-
-        displayDistribution();
-    }
-
-    private void displayDistribution() {
-        System.out.println("----------- Cards number after distribution ----------- ");
-        for (Player player : players) {
-            System.out.println(player.getName() + "'s hand size: " + player.getHand().size());
-        }
-
-        System.out.println("------- Hand of each Player after distribution ------- ");
-        for (Player player : players) {
-            System.out.println(player.getName() + "'s hand: " + player.getHand());
-        }
-        System.out.println("--------------------------------------------");
     }
 
     @Override
@@ -74,16 +49,16 @@ class OldMaidGame implements CardGame {
             playerThreads[i].start();
         }
 
-        synchronized (gameLock) {
-            gameLock.notify();
-        }
-
         try {
             for (Thread thread : playerThreads) {
                 thread.join();
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        }
+
+        synchronized (gameLock) {
+            gameLock.notify();
         }
 
         displayResults();
@@ -114,6 +89,31 @@ class OldMaidGame implements CardGame {
             System.out.print(" " + winner.getName());
         }
         System.out.println();
+    }
+
+    private void distributeCards() {
+        int playerIndex = 0;
+
+        for (Card card : deck) {
+            Player currentPlayer = players.get(playerIndex);
+            currentPlayer.receiveCard(card);
+            playerIndex = (playerIndex + 1) % players.size();
+        }
+
+        displayDistribution();
+    }
+
+    private void displayDistribution() {
+        System.out.println("----------- Cards number after distribution ----------- ");
+        for (Player player : players) {
+            System.out.println(player.getName() + "'s hand size: " + player.getHand().size());
+        }
+
+        System.out.println("------- Hand of each Player after distribution ------- ");
+        for (Player player : players) {
+            System.out.println(player.getName() + "'s hand: " + player.getHand());
+        }
+        System.out.println("--------------------------------------------");
     }
 
     private boolean hasJoker(Player player) {
