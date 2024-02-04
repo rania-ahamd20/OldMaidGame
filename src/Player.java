@@ -45,7 +45,7 @@ class Player implements Runnable {
             takeRandomCard(nextPlayer);
             checkMatchingPair();
 
-            // This is where matching pairs are checked
+           // This is where matching pairs are checked
 
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
             gameLock.notifyAll();
@@ -97,7 +97,7 @@ class Player implements Runnable {
         printAllHands();
     }
 
-    public void receiveCard(Card card) {
+   public void receiveCard(Card card) {
         hand.add(card);
     }
     private void printAllHands() {
