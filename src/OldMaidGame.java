@@ -58,37 +58,19 @@ class OldMaidGame implements CardGame {
         }
 
         synchronized (gameLock) {
-            gameLock.notify();
+            gameLock.notifyAll();
         }
 
-        displayResults();
+        displayResults(); // Call displayResults after the game loop
     }
 
     @Override
     public void displayResults() {
-        Player loser = null;
-        List<Player> winners = new ArrayList<>();
-
-        for (Player player : players) {
-            if (hasJoker(player)) {
-                loser = player;
-            } else {
-                winners.add(player);
-            }
+        if (players.size() == 1) {
+            Player Loser = players.get(0);
+            System.out.println(Loser.getName() + " is the Loser! The last player remaining with Joker.");
         }
-
-        if (loser != null) {
             System.out.println();
-            System.out.println(loser.getName() + " is the loser! They did not have the Joker.");
-        } else {
-            System.out.println("No player has the Joker!");
-        }
-
-        System.out.print("Winners:");
-        for (Player winner : winners) {
-            System.out.print(" " + winner.getName());
-        }
-        System.out.println();
     }
 
     private void distributeCards() {

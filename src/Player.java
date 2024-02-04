@@ -26,9 +26,12 @@ class Player implements Runnable {
 
     @Override
     public void run() {
-        while (!allHandsEmptyExceptOne()) {
+        while (gameOngoing) {
             try {
-                takeTurn();
+                if(players.size()>1) {
+                    takeTurn();
+                }
+                else {break;}
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -38,19 +41,25 @@ class Player implements Runnable {
     private void takeTurn() throws InterruptedException {
         synchronized (gameLock) {
             while (!isPlayerTurn()) {
-                gameLock.wait();
+                if(players.size()>1)
+                {gameLock.wait();}
+                else {break;}
             }
 
             Player nextPlayer = getNextPlayerInTurnOrder();
-            takeRandomCard(nextPlayer);
-            checkMatchingPair();
 
-           // This is where matching pairs are checked
-
+            if (hand.isEmpty()) {
+                players.remove(this);
+                System.out.println(name + " has an empty hand and is the winner in the game!");
+            } else {
+                takeRandomCard(nextPlayer);
+                checkMatchingPair();
+            }
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
             gameLock.notifyAll();
         }
     }
+
 
 
     private boolean isPlayerTurn() {
@@ -119,8 +128,9 @@ class Player implements Runnable {
         // Set the gameOngoing flag to false if only one hand is non-empty
         gameOngoing = nonEmptyHands > 1;
 
-        return !gameOngoing;
+        return gameOngoing;
     }
+
 
     public String getName() {
         return name;
