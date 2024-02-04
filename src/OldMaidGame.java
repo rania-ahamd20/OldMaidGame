@@ -61,7 +61,7 @@ class OldMaidGame implements CardGame {
             gameLock.notifyAll();
         }
 
-        displayResults(); // Call displayResults after the game loop
+        displayResults();
     }
 
     @Override

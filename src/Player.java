@@ -18,7 +18,7 @@ class Player implements Runnable {
         this.hand = new ArrayList<>();
         this.turnSemaphore = turnSemaphore;
 
-        this.turnSemaphore.release(); // Release the semaphore initially
+        this.turnSemaphore.release();
 
         this.gameLock = gameLock;
         this.playerIndex = players.indexOf(this);
@@ -74,11 +74,10 @@ class Player implements Runnable {
             List<Card> playerHand = player.getHand();
             Collections.shuffle(playerHand);
 
-            // Use an Iterator to safely remove elements while iterating
             Iterator<Card> iterator = playerHand.iterator();
             if (iterator.hasNext()) {
                 Card randomCard = iterator.next();
-                iterator.remove();  // Safe removal using Iterator
+                iterator.remove();
                 hand.add(randomCard);
                 System.out.println(name + " took a card from " + player.getName() + " which is " + randomCard);
             }
@@ -125,7 +124,6 @@ class Player implements Runnable {
             }
         }
 
-        // Set the gameOngoing flag to false if only one hand is non-empty
         gameOngoing = nonEmptyHands > 1;
 
         return gameOngoing;
