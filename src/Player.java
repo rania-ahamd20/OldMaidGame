@@ -10,7 +10,6 @@ class Player implements Runnable {
     private final Semaphore turnSemaphore;
     private final Object gameLock;
     private static volatile int currentPlayerIndex = 0;
-    private final int playerIndex;
     private static volatile boolean gameOngoing = true;
     public Player(String name, List<Player> players, Semaphore turnSemaphore, Object gameLock) {
         this.name = name;
@@ -21,7 +20,7 @@ class Player implements Runnable {
         this.turnSemaphore.release();
 
         this.gameLock = gameLock;
-        this.playerIndex = players.indexOf(this);
+
     }
 
     @Override
@@ -113,20 +112,6 @@ class Player implements Runnable {
             System.out.println(player.getName() + "'s hand: " + player.getHand());
         }
         System.out.println();
-    }
-
-    private boolean allHandsEmptyExceptOne() {
-        int nonEmptyHands = 0;
-
-        for (Player player : players) {
-            if (!player.getHand().isEmpty()) {
-                nonEmptyHands++;
-            }
-        }
-
-        gameOngoing = nonEmptyHands > 1;
-
-        return gameOngoing;
     }
 
 

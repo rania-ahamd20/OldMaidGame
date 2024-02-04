@@ -98,12 +98,4 @@ class OldMaidGame implements CardGame {
         System.out.println("--------------------------------------------");
     }
 
-    private boolean hasJoker(Player player) {
-        for (Card card : player.getHand()) {
-            if ("Joker".equals(card.getValue())) {
-                return true;
-            }
-        }
-        return false;
-    }
 }
