@@ -8,14 +8,12 @@ class Player implements Runnable {
     private final List<Card> hand;
     private final List<Player> players;
     private final Semaphore turnSemaphore;
-    private final Object gameLock;
 
     public Player(String name, List<Player> players, Semaphore turnSemaphore, Object gameLock) {
         this.name = name;
         this.players = players;
         this.hand = new ArrayList<>();
         this.turnSemaphore = turnSemaphore;
-        this.gameLock = gameLock;
     }
 
     @Override

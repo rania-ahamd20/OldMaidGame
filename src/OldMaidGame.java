@@ -75,7 +75,7 @@ class OldMaidGame implements CardGame {
         }
 
         synchronized (gameLock) {
-            gameLock.notify(); // Notify the first player thread to start
+            gameLock.notify();
         }
 
         try {
