@@ -7,7 +7,6 @@ class Player implements Runnable {
     private final String name;
     private final List<Card> hand;
     private final List<Player> players;
-    private final Semaphore turnSemaphore;
     private final Object gameLock;
     private static volatile int currentPlayerIndex = 0;
     private static volatile boolean gameOngoing = true;
@@ -15,10 +14,6 @@ class Player implements Runnable {
         this.name = name;
         this.players = players;
         this.hand = new ArrayList<>();
-        this.turnSemaphore = turnSemaphore;
-
-        this.turnSemaphore.release();
-
         this.gameLock = gameLock;
 
     }
@@ -26,36 +21,38 @@ class Player implements Runnable {
     @Override
     public void run() {
         while (gameOngoing) {
-            try {
-                if(players.size()>1) {
-                    takeTurn();
-                }
-                else {break;}
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            if(players.size()>1) {
+                takeTurn();
             }
+            else {break;}
         }
     }
 
-    private void takeTurn() throws InterruptedException {
+    private void takeTurn() {
         synchronized (gameLock) {
-            while (!isPlayerTurn()) {
-                if(players.size()>1)
-                {gameLock.wait();}
-                else {break;}
-            }
+            try {
+                while (!isPlayerTurn()) {
+                    if (players.size() > 1) {
+                        gameLock.wait();
+                    } else {
+                        break;
+                    }
+                }
 
-            Player nextPlayer = getNextPlayerInTurnOrder();
+                Player nextPlayer = getNextPlayerInTurnOrder();
 
-            if (hand.isEmpty()) {
-                players.remove(this);
-                System.out.println(name + " has an empty hand and is the winner in the game!");
-            } else {
-                takeRandomCard(nextPlayer);
-                checkMatchingPair();
+                if (hand.isEmpty()) {
+                    players.remove(this);
+                    System.out.println(name + " has an empty hand and is the winner in the game!");
+                } else {
+                    takeRandomCard(nextPlayer);
+                    checkMatchingPair();
+                }
+                currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+                gameLock.notifyAll();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-            gameLock.notifyAll();
         }
     }
 
@@ -82,7 +79,6 @@ class Player implements Runnable {
             }
         }
     }
-
 
     private void checkMatchingPair() {
         for (int i = 0; i <= hand.size(); i++) {
